@@ -689,7 +689,7 @@ Los parámetros utilizados en la implementación computacional son:
 |---|---:|
 | Ganancia proporcional $k_P$ | $19075.4868$ |
 | Ganancia integral $k_I$ | $67385555.4119$ |
-| Ganancia derivativa $k_D$ | $0.0.18117$ |
+| Ganancia derivativa $k_D$ | $0.18117$ |
 | Coeficiente del filtro $N_f$ | $72936.4813$ |
 
 Por lo tanto, la función de transferencia del controlador es:
