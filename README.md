@@ -1110,17 +1110,17 @@ La organización de los archivos permite documentar el desarrollo matemático, l
 .
 ├── README.md                         # Reporte y documentación
 ├── CITATION.cff                      # Datos de citación del repositorio
-├── Análisis.pdf                      # Desarrollo matemático a mano
-├── Gamez23212193.mlx                # Cuaderno computacional MATLAB
-├── Gamez23212193.pdf                # Exportación del cuaderno MATLAB
-├── sistema.slx                       # Modelo Simulink/Simscape
-├── Gamez23212193.py                 # Implementación en Python
+├── Análisis matemático.pdf           # Desarrollo matemático a mano
+├── Villalobos23212243.mlx            # Cuaderno computacional MATLAB
+├── Villalobos23212243.pdf            # Exportación del cuaderno MATLAB
+├── Sistema1.slx                      # Modelo Simulink/Simscape
+├── Villalobos23212243.py             # Implementación en Python
 ├── Caso_matlab.pdf                   # Respuestas obtenidas en MATLAB
-├── caso_python.pdf                   # Respuestas obtenidas en Python
-├── Biorender_SistemaEndocrino.png    # Diagrama fisiológico
+├── Caso_python.pdf                   # Respuestas obtenidas en Python
+├── P4_Biorender.png                  # Diagrama fisiológico
 ├── PID.png                           # Evidencia de sintonización PID
 ├── Circuito.jpeg                     # Evidencia del circuito
-└── Osciloscopio.bmp                  # Evidencia experimental
+└── LAB_Practica4.bmp                 # Evidencia experimental
 
 ```
 
