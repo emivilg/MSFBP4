@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: 'Práctica 4: Modelado y control del sistema endocrino'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Emiliano
+    family-names: Villalobos
+    email: L23212243@tijuana.tecnm.mx
+    affiliation: TecNM / IT Tijuana
+repository-code: 'https://github.com/emivilg/MSFBP4'
+keywords:
+  - sistema endócrino
+  - modelo fenomenológico
+  - circuito RLC
+  - secreción hormonal
+  - controlador PID
+  - MATLAB
+  - Simulink
+  - Simscape Electrical
+  - Python
+  - simulación *in silico*
+license: BSD-2-Clause
+version: '1.0'
+date-released: '2026-11-18'
