@@ -12,7 +12,7 @@ El caso de estudio representa el **sistema endócrino** mediante un modelo fenom
 **Institución:** Tecnológico Nacional de México / Instituto Tecnológico de Tijuana  
 **Asignatura:** Modelado de Sistemas Fisiológicos  
 **Programa:** Ingeniería Biomédica  
-**Estudiante:** Villalobos García Emiliano · 23212243 · l23212243@tijuana.tecnm.mx
+**Estudiante:** Villalobos García Emiliano · 23212243 · l23212243@tectijuana.edu.mx
 
 **Repositorio de la asignatura:** https://github.com/DrPaulValle/MSF-IBF1020  
 **Sede:** Blvd. Alberto Limón Padilla s/n, Tijuana, C. P. 22454, B. C., México.
@@ -509,11 +509,11 @@ La configuración se realiza mediante:
 
 ```matlab
 clc; clear; close all; warning('off','all')
-open_system('sistema')
+open_system('Sistema1')
 parameters.StopTime = '10';
 parameters.Solver = 'ode15s';
 parameters.MaxStep = '1e-3';
-x = sim('sistema',parameters);
+x = sim('Sistema1',parameters);
 ```
 
 En Python se utiliza un intervalo de $0\leq t\leq5\ \mathrm{s}$, con una discretización de $\Delta t=10^{-3}\ \mathrm{s}$ y condiciones iniciales nulas:
@@ -695,16 +695,24 @@ Los parámetros utilizados en la implementación computacional son:
 Por lo tanto, la función de transferencia del controlador es:
 
 ```math
-K(s)=962.3681414+
-\frac{171510.8400}{s}+
-\frac{0.1791709491(3678.0177062)s}{s+3678.0177062}.
+K(s)=19075.4868+
+\frac{67385555.4119}{s}+
+\frac{0.18117(72936.4813)s}{s+72936.4813}.
 ```
 
 La acción proporcional modifica la respuesta ante el error, la integral contribuye a eliminar el error de seguimiento en estado estacionario y la derivativa filtrada permite actuar sobre las variaciones rápidas de la señal.
 
 ### 3. Realización mediante componentes analógicos
 
-Para representar el controlador mediante resistencias y capacitancias se utilizan las relaciones nominales:
+El controlador PID se realiza con un amplificador operacional en configuración inversora. La impedancia de entrada $Z_e(s)$ es una resistencia $R_e$ en paralelo con un capacitor $C_e$, y la impedancia de retroalimentación $Z_f(s)$ es una resistencia $R_r$ en serie con un capacitor $C_r$. La función de transferencia ideal (sin considerar el signo de la inversión) es:
+
+```math
+K(s)=\frac{Z_f(s)}{Z_e(s)}
+=\frac{R_r+\dfrac{1}{C_rs}}{\dfrac{R_e}{1+R_eC_es}}
+=\frac{R_r}{R_e}+\frac{1}{R_eC_r}\frac{1}{s}+R_rC_es+\frac{C_e}{C_r}.
+```
+
+Al igualar esta expresión con $K(s)=k_P+\dfrac{k_I}{s}+k_Ds$, y considerando el término $C_e/C_r$ despreciable frente a $k_P$, se obtienen las relaciones nominales:
 
 ```math
 k_P=\frac{R_r}{R_e},\qquad
@@ -712,32 +720,72 @@ k_I=\frac{1}{R_eC_r},\qquad
 k_D=C_eR_r.
 ```
 
-Considerando una capacitancia de referencia:
+**Datos.** Ganancias sintonizadas y capacitancia de referencia:
 
 ```math
-C_r=1\times10^{-6}\ \mathrm{F},
+k_P=19075.4868,\quad
+k_I=67385555.4119,\quad
+k_D=0.18117,\quad
+C_r=1\times10^{-6}\ \mathrm{F}.
 ```
 
-los componentes equivalentes se calculan mediante:
+**Paso 1. Despejar $R_e$ de $k_I$.**
 
 ```math
-R_e=\frac{1}{C_rk_I},
-\qquad
-R_r=k_PR_e,
-\qquad
-C_e=\frac{k_D}{R_r}.
+R_e=\frac{1}{C_rk_I}
+=\frac{1}{(1\times10^{-6})(67385555.4119)}
+=0.01484\ \Omega.
 ```
 
-Los valores obtenidos son aproximadamente:
+**Paso 2. Despejar $R_r$ de $k_P$**, usando el valor de $R_e$:
+
+```math
+R_r=k_PR_e
+=(19075.4868)(0.01484)
+=283.08\ \Omega.
+```
+
+**Paso 3. Despejar $C_e$ de $k_D$**, usando el valor de $R_r$:
+
+```math
+C_e=\frac{k_D}{R_r}
+=\frac{0.18117}{283.08}
+=6.400\times10^{-4}\ \mathrm{F}
+=640.0\ \mu\mathrm{F}.
+```
+
+Los valores obtenidos son:
 
 | Componente | Valor calculado |
 |---|---:|
 | $C_r$ | $1\ \mu\mathrm{F}$ |
-| $R_e$ | $0.01484\ \Omega$ |
-| $R_r$ | $283.08\ \mathrm{k}\Omega$ |
+| $R_e$ | $0.01484\ \Omega$ ($14.84\ \mathrm{m}\Omega$) |
+| $R_r$ | $283.08\ \Omega$ |
 | $C_e$ | $640.0\ \mu\mathrm{F}$ |
 
-Estos valores corresponden al cálculo nominal del controlador analógico ideal. Para la implementación con componentes comerciales se consideran las tolerancias y las diferencias entre el comportamiento del controlador ideal y su realización eléctrica.
+**Verificación.** Al sustituir los componentes en las relaciones nominales se recuperan las ganancias originales:
+
+```math
+\frac{R_r}{R_e}=19075.4868,\qquad
+\frac{1}{R_eC_r}=67385555.4119,\qquad
+C_eR_r=0.18117.
+```
+
+El mismo cálculo se realiza en Python:
+
+```python
+kP,kI,kD,Nf = 19075.4868,67385555.4119,0.18117,72936.4813
+Cr = 1E-6
+Re = 1/(Cr*kI)    # Resistencia de entrada
+Rr = kP*Re        # Resistencia de retroalimentación
+Ce = kD/Rr        # Capacitancia de entrada
+```
+
+**Observaciones.**
+
+- Estos valores corresponden al cálculo nominal del controlador analógico ideal. El coeficiente de filtro $N_f$ no interviene en estas relaciones.
+- $R_e=14.84\ \mathrm{m}\Omega$ y $C_e=640\ \mu\mathrm{F}$ no son valores comerciales prácticos, debido a que $k_I$ es muy grande con $C_r=1\ \mu\mathrm{F}$. Para construirlo se deben aproximar con combinaciones de componentes comerciales (series o paralelos) o reescalar las ganancias.
+- Para la implementación con componentes comerciales se consideran las tolerancias y las diferencias entre el controlador ideal y su realización eléctrica.
 
 [Volver al contenido](#contenido)
 
@@ -811,7 +859,7 @@ sysPID = ctrl.feedback(ctrl.series(PID,sysCaso),1,sign=-1)
 La respuesta del individuo sano se utiliza como referencia:
 
 ```python
-_,VsPID = ctrl.forced_response(sysPID,t,VsControl,x0)
+_,PI = ctrl.forced_response(sysPID,t,Fsx,x0)
 ```
 
 El error de seguimiento se determina mediante:
@@ -828,10 +876,10 @@ La representación gráfica considera cuatro señales:
 
 | Señal | Variable | Representación |
 |---|---|---|
-| Entrada aplicada | `u` | Línea continua rosa intenso |
-| Control | `VsControl` | Línea continua rosa claro |
-| Caso | `VsCaso` | Línea continua rojo oscuro |
-| Caso con PID | `VsPID` | Línea punteada violeta |
+| Entrada aplicada | `u` | Línea continua delgada café oscuro |
+| Control | `Fsx` | Línea continua verde oscuro |
+| Caso | `Fsy` | Línea continua crema |
+| Caso con PID | `PI` | Línea punteada rojo ladrillo |
 
 Las respuestas se representan durante un intervalo de $0$ a $5\ \mathrm{s}$, utilizando las mismas condiciones de entrada y parámetros del modelo.
 
@@ -869,7 +917,7 @@ V_e(t),\qquad V_s(t).
 ```
 
 
-Las respuestas experimentales se registran mediante osciloscopio y se documentan en una captura en formato `.bmp`, permitiendo contrastar las señales correspondientes a la implementación del sistema.
+Las respuestas experimentales se registran mediante osciloscopio y se documentan en la captura `LAB_Practica4.bmp`, permitiendo contrastar las señales correspondientes a la implementación del sistema.
 
 ### 2. Controlador y planta en lazo cerrado
 
@@ -906,18 +954,20 @@ Las respuestas obtenidas permiten comparar **la entrada, la salida en lazo abier
 
 La convención gráfica utilizada es:
 
-- **Rosa intenso:** entrada aplicada, $V_e(t)$.
-- **Rosa claro:** respuesta de referencia, $V_{s,\mathrm{control}}(t)$.
-- **Rojo oscuro:** respuesta del caso, $V_{s,\mathrm{caso}}(t)$.
-- **Violeta:** respuesta del caso con controlador PID.
+- **Café oscuro** (`[46, 41, 16]`): entrada aplicada, $V_e(t)$.
+- **Verde oscuro** (`[44, 87, 69]`): respuesta de referencia, $V_{s,\mathrm{control}}(t)$.
+- **Crema** (`[235, 227, 167]`): respuesta del caso, $V_{s,\mathrm{caso}}(t)$.
+- **Rojo ladrillo** (`[166, 77, 55]`): respuesta del caso con controlador PID.
+
+En MATLAB el caso se traza con línea punteada y el PID con línea discontinua; en Python el caso se traza con línea continua y el PID con línea punteada.
 
 ### Archivos de resultados identificados
 
 | Resultado | MATLAB/Simulink | Python | Laboratorio |
 |---|---|---|---|
-| Respuesta del control | PDF | PDF | LAB_Practica4 `.bmp` |
-| Respuesta del caso | PDF | PDF | LAB_Practica4 `.bmp` |
-| Sistema con controlador PID | PDF | PDF | LAB_Practica4 `.bmp` |
+| Respuesta del control | `Caso_matlab.pdf` | `Caso_python.pdf` | `LAB_Practica4.bmp` |
+| Respuesta del caso | `Caso_matlab.pdf` | `Caso_python.pdf` | `LAB_Practica4.bmp` |
+| Sistema con controlador PID | `Caso_matlab.pdf` | `Caso_python.pdf` | `LAB_Practica4.bmp` |
 
 Las figuras permiten comparar el comportamiento de ambas condiciones, mientras que las capturas del osciloscopio proporcionan evidencia de las respuestas experimentales en lazo abierto y en lazo cerrado.
 
@@ -1088,7 +1138,7 @@ La práctica sigue una secuencia de **modelado, análisis, simulación, control 
 - [x] Registrar las respuestas en lazo abierto mediante osciloscopio.
 - [x] Implementar el controlador analógico con amplificadores operacionales.
 - [x] Construir y evaluar el sistema en lazo cerrado.
-- [x] Registrar las respuestas experimentales mediante osciloscopio y conservar la evidencia en un archivo `.bmp`
+- [x] Registrar las respuestas experimentales mediante osciloscopio y conservar la evidencia en el archivo `LAB_Practica4.bmp`
 - [x] Conservar la evidencia de sintonización del controlador en la imagen `PID.png`.
 - [x] Comparar las respuestas experimentales con las simulaciones computacionales.
 - [x] Elaborar el diagrama biológico del sistema endócrino mediante BioRender.
@@ -1110,7 +1160,7 @@ La organización de los archivos permite documentar el desarrollo matemático, l
 .
 ├── README.md                         # Reporte y documentación
 ├── CITATION.cff                      # Datos de citación del repositorio
-├── Análisis matemático.pdf           # Desarrollo matemático a mano
+├── Analisis matemático.pdf           # Desarrollo matemático a mano
 ├── Villalobos23212243.mlx            # Cuaderno computacional MATLAB
 ├── Villalobos23212243.pdf            # Exportación del cuaderno MATLAB
 ├── Sistema1.slx                      # Modelo Simulink/Simscape
@@ -1120,11 +1170,12 @@ La organización de los archivos permite documentar el desarrollo matemático, l
 ├── P4_Biorender.png                  # Diagrama fisiológico
 ├── PID.png                           # Evidencia de sintonización PID
 ├── Circuito.jpeg                     # Evidencia del circuito
-└── LAB_Practica4.bmp                 # Evidencia experimental
+├── LAB_Practica4.bmp                 # Evidencia experimental
+└── LICENSE                           # Licencia del repositorio
 
 ```
 
-**Criterio de nombres:** los archivos de MATLAB, Simulink, Python y las figuras conservan las denominaciones utilizadas durante la práctica. La evidencia experimental se documenta mediante un archivo `.bmp` del osciloscopio, mientras que la imagen `PID.png` contiene la evidencia de sintonización del controlador.
+**Criterio de nombres:** los archivos de MATLAB, Simulink, Python y las figuras conservan las denominaciones utilizadas durante la práctica. La evidencia experimental se documenta mediante el archivo `LAB_Practica4.bmp` del osciloscopio, mientras que la imagen `PID.png` contiene la evidencia de sintonización del controlador.
 
 [Volver al contenido](#contenido)
 
@@ -1194,14 +1245,14 @@ La implementación experimental permite registrar las señales de entrada y sali
 | Análisis del sistema | Cálculo de polos, estabilidad, error estacionario y bosquejo de respuesta |
 | Simulaciones | Modelo de Simulink, funciones de transferencia y circuitos en Simscape Electrical |
 | Sintonización | Ganancias PID, filtro derivativo y evidencia `PID.png` |
-| MATLAB | Cuaderno `.mlx`, exportación `.pdf` y figura comparativa |
-| Python | Código `.py`, funciones de transferencia y figura de resultados |
+| MATLAB | `Villalobos23212243.mlx`, `Villalobos23212243.pdf`, `Sistema1.slx` y figura `Caso_matlab.pdf` |
+| Python | `Villalobos23212243.py` y figura `Caso_python.pdf` |
 | Controlador analógico | Cálculo de componentes y representación eléctrica del controlador |
-| Circuito | Evidencia del circuito `.jpeg` |
-| Laboratorio | Montaje experimental y una captura del osciloscopio en formato `.bmp` |
+| Circuito | Evidencia del circuito `Circuito.jpeg` |
+| Laboratorio | Montaje experimental y una captura del osciloscopio `LAB_Practica4.bmp` |
 | Verificación cruzada | Comparación de las respuestas computacionales y experimentales |
 | Diagrama biológico | Representación fisiológica mediante BioRender |
-| Documentación | `README.md`, `CITATION.cff`, análisis matemático y evidencias de la práctica |
+| Documentación | `README.md`, `CITATION.cff`, `LICENSE`, `Analisis matemático.pdf` y evidencias de la práctica |
 
 ### Criterios de presentación académica
 
