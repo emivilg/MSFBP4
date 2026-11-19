@@ -733,9 +733,9 @@ Los valores obtenidos son aproximadamente:
 | Componente | Valor calculado |
 |---|---:|
 | $C_r$ | $1\ \mu\mathrm{F}$ |
-| $R_e$ | $5.8305\ \Omega$ |
-| $R_r$ | $5.6112\ \mathrm{k}\Omega$ |
-| $C_e$ | $31.93\ \mu\mathrm{F}$ |
+| $R_e$ | $0.01484\ \Omega$ |
+| $R_r$ | $283.08\ \mathrm{k}\Omega$ |
+| $C_e$ | $640.0\ \mu\mathrm{F}$ |
 
 Estos valores corresponden al cálculo nominal del controlador analógico ideal. Para la implementación con componentes comerciales se consideran las tolerancias y las diferencias entre el comportamiento del controlador ideal y su realización eléctrica.
 
@@ -792,10 +792,10 @@ Las respuestas se obtienen mediante `forced_response`, utilizando condiciones in
 El controlador se construye considerando las ganancias proporcional, integral y derivativa, así como el coeficiente de filtrado:
 
 ```python
-kP = 962.368141439034
-kI = 171510.840008335
-kD = 0.179170949090154
-Nf = 3678.01770617189
+kP = 19075.4868
+kI = 67385555.4119
+kD = 0.18117
+Nf = 72936.4813
 
 numPID = [kP+kD*Nf,kP*Nf+kI,kI*Nf]
 denPID = [1,Nf,0]
@@ -915,9 +915,9 @@ La convención gráfica utilizada es:
 
 | Resultado | MATLAB/Simulink | Python | Laboratorio |
 |---|---|---|---|
-| Respuesta del control | PDF | PDF | Osciloscopio `.bmp` |
-| Respuesta del caso | PDF | PDF | Osciloscopio `.bmp` |
-| Sistema con controlador PID | PDF | PDF | Osciloscopio `.bmp` |
+| Respuesta del control | PDF | PDF | LAB_Practica4 `.bmp` |
+| Respuesta del caso | PDF | PDF | LAB_Practica4 `.bmp` |
+| Sistema con controlador PID | PDF | PDF | LAB_Practica4 `.bmp` |
 
 Las figuras permiten comparar el comportamiento de ambas condiciones, mientras que las capturas del osciloscopio proporcionan evidencia de las respuestas experimentales en lazo abierto y en lazo cerrado.
 
@@ -953,10 +953,10 @@ Las ganancias utilizadas durante la simulación son:
 
 ```math
 \begin{aligned}
-k_P &= 962.3681414,\\
-k_I &= 171510.8400,\\
-k_D &= 0.1791709491,\\
-N_f &= 3678.0177062.
+k_P &= 19075.4868,\\
+k_I &= 67385555.4119,\\
+k_D &= 0.18117,\\
+N_f &= 72936.4813.
 \end{aligned}
 ```
 
